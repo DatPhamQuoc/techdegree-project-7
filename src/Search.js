@@ -1,8 +1,7 @@
 import React, {Component} from 'react'
-
+import { withRouter } from 'react-router-dom'
 
 class Search extends Component {
-
   state = {
     keyword: ""
   }
@@ -15,10 +14,18 @@ class Search extends Component {
 
   handleSubmit = (e) => {
     e.preventDefault()
-    this.props.search(this.state.keyword)
+    this.props.search(this.state.keyword) // Perform search
+    this.props.history.push(`/search/${this.state.keyword}`) // Change url
+    this.props.loading() // Change "isLoading" state to "true"
+    this.setState({ // Empty search input
+       keyword: ""
+    })
+
+
   }
 
   render(){
+    console.log("Search")
     return(
       <form onSubmit={this.handleSubmit} className="search-form">
         <input type="search" name="search" value={this.state.keyword} onChange={this.handleChange} placeholder="Search" required/>
@@ -33,4 +40,4 @@ class Search extends Component {
   }
 }
 
-export default Search
+export default withRouter(Search)

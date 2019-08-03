@@ -3,8 +3,9 @@ import './index.css'
 import apiKey from "./config.js"
 import Search from "./Search.js"
 import ImagesList from "./ImagesList.js"
-import MainNav from "./MainNav.js"
-import NotFound from "./NotFound.js"
+import MainNav from "./MainNav.js" // Main Navigation Buttons
+import Error from "./404.js"  //404 Page Not Found
+
 import {
   BrowserRouter,
   Route,
@@ -15,39 +16,56 @@ import {
 
 class App extends Component {
   state ={
-    images: []
+    images: [],
+    keyword: "",
+    isLoading: true
   }
+
 
   componentDidMount(){
     this.handleQuery()
   }
 
+  loading = () => {
+    this.setState({isLoading: true})
+  }
+
   handleQuery = (query='cats') => {
-    console.log(`https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&tags=${query}&per_page=24&format=json&nojsoncallback=1`)
     fetch(`https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&tags=${query}&per_page=24&format=json&nojsoncallback=1`)
         .then(response =>  response.json())
         .then(responseData => {
-          console.log(this)
-          this.setState({images: responseData.photos.photo})
+          this.setState({
+            images: responseData.photos.photo,
+            keyword: query,
+            isLoading: false
+          })
         })
         .catch(err => {
-          console.log('Something went wrong')
+          console.log('Something went wrong', err)
         })
     }
 
   render(){
-    return (
+      // Conditional test
+      let content;
+      (this.state.isLoading)?
+        content= <h2>Loading...</h2>:
+        content =
+           <Switch>
+              <Route exact path="/" render={() => <Redirect to="/cats" />} />
+              <Route path="/search/:object" render={()=> <ImagesList keyword={this.state.keyword} data={this.state.images} /> } />
+              <Route path="/cats" render={()=> <ImagesList keyword={this.state.keyword} data={this.state.images} /> }/>
+              <Route path="/dogs" render={()=> <ImagesList keyword={this.state.keyword} data={this.state.images} /> }/>
+              <Route path="/computers" render={()=> <ImagesList keyword={this.state.keyword} data={this.state.images} /> }/>
+              <Route component={Error}/>
+            </Switch>
+
+    return(
       <BrowserRouter>
       <div className="container">
-        <Search search={this.handleQuery}/>
+        <Search  loading={this.loading} search={this.handleQuery}/>
         <MainNav search={this.handleQuery}/>
-        <Switch>
-          <Route exact path="/" render={()=> <Redirect to="/cats"/>} />
-          <Route path="/dogs" render={() => <ImagesList title='dogs' data={this.state.images} />}/>
-          <Route path="/cats" render={() => <ImagesList title='cats' data={this.state.images} />}/>
-          <Route path="/computers" render={() => <ImagesList title='computers' data={this.state.images} />}/>
-          <Route component={NotFound} />
-        </Switch>
+        {content}
       </div>
       </BrowserRouter>
     );
