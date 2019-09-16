@@ -26,7 +26,7 @@ class App extends Component {
     this.handleQuery()
   }
 
-  loading = () => {
+  searchIsloading = () => {
     this.setState({isLoading: true})
   }
 
